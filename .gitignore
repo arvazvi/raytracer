@@ -45,5 +45,6 @@ CMakeUserPresets.json
 *.out
 *.app
 
-bin/
+build/raytracer
+build/test_*
 *.ppm
