@@ -8,6 +8,7 @@ Camera::Camera(double width, double height, double focal_length, Point3 center) 
     this->focal_length = focal_length;
     this->viewport_height = viewport_height;
     this->viewport_width = viewport_width;
+    this->center = center;
 
     this->viewport_u = Vector3(viewport_width, 0, 0);
     this->viewport_v = Vector3(0, -viewport_height, 0);
