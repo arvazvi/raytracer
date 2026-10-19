@@ -10,13 +10,16 @@
 
 double hit_sphere(const Point3& center, double radius, const Ray& r) {
     Vector3 oc = center - r.Origin();
-    auto a = r.Direction().Dot(r.Direction());
-    auto b = -2.0 * r.Direction().Dot(oc);
-    auto c = oc.Dot(oc) - radius*radius;
-    auto discriminant = b*b - 4*a*c;
+    const double m = r.Direction().Magnitude();
+    const double a = m * m;
+    const double h = r.Direction().Dot(oc);
+
+    const double oc_m = oc.Magnitude();
+    auto c = oc_m * oc_m - radius * radius;
+    auto discriminant = h*h - a*c;
     if (discriminant < 0) return -1.0;
 
-    return (-b - std::sqrt(discriminant) ) / (2.0*a);
+    return (h - std::sqrt(discriminant)) / a;
 }
 
 Color ray_color(const Ray& r) {
