@@ -1,36 +1,30 @@
-#include "camera.h"
-#include "color.h"
-#include "ray.h"
-#include "vector.h"
-
 #include <iostream>
 
-#define ASPECT_RATIO  (16.0 / 9.0)
+#include "camera.h"
+#include "color.h"
+#include "hittable.h"
+#include "hittable_list.h"
+#include "ray.h"
+#include "sphere.h"
+#include "vector.h"
+
+#define ASPECT_RATIO (16.0 / 9.0)
 #define FOCAL_LENGTH 1.0
 
-double hit_sphere(const Point3& center, double radius, const Ray& r) {
-    Vector3 oc = center - r.Origin();
-    const double m = r.Direction().Magnitude();
-    const double a = m * m;
-    const double h = r.Direction().Dot(oc);
+const double infinity = std::numeric_limits<double>::infinity();
+const double pi = 3.1415926535897932385;
 
-    const double oc_m = oc.Magnitude();
-    auto c = oc_m * oc_m - radius * radius;
-    auto discriminant = h*h - a*c;
-    if (discriminant < 0) return -1.0;
-
-    return (h - std::sqrt(discriminant)) / a;
+inline double degrees_to_radians(double degrees) {
+    return degrees * pi / 180.0;
 }
 
-Color ray_color(const Ray& r) {
-    auto t = hit_sphere(Point3(0,0,-1), 0.5, r);
-    if (t > 0.0) {
-        Vector3 N = (r.At(t) - Vector3(0,0,-1)).Unit();
-        return Color(N.X()+1, N.Y()+1, N.Z()+1) / 2;
-    }
+Color ray_color(const Ray& r, const Hittable& world) {
+    Record rec;
+    if (world.hit(r, 0, infinity, rec))
+        return (rec.normal + Color(1, 1, 1)) / 2;
     Vector3 unit_direction = r.Direction().Unit();
-    auto a = 0.5*(unit_direction.Y() + 1.0);
-    return Color(1.0, 1.0, 1.0)*(1.0-a) + Color(0.5, 0.7, 1.0) * a;
+    double a = 0.5 * (unit_direction.Y() + 1.0);
+    return Color(1.0, 1.0, 1.0) * (1.0 - a) + Color(0.5, 0.7, 1.0) * a;
 }
 
 int main() {
@@ -39,15 +33,18 @@ int main() {
     height = (height < 1) ? 1 : height;
     Camera cam = Camera(width, height, FOCAL_LENGTH, Point3(0, 0, 0));
 
+    HittableList world;
+    world.add(make_shared<Sphere>(Point3(0, 0, -1), 0.5));
+    world.add(make_shared<Sphere>(Point3(0, -100.5, -1), 100));
+
     // Render
     std::cout << "P3\n" << width << ' ' << height << "\n255\n";
     for (int j = 0; j < height; j++) {
         for (int i = 0; i < width; i++) {
             Ray ray = Ray(cam.Center(), cam.ray_direction(i, j));
-            Color pixel_color = ray_color(ray);
+            Color pixel_color = ray_color(ray, world);
 
             write_color(std::cout, pixel_color);
         }
     }
-
 }

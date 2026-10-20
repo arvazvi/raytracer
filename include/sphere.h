@@ -7,14 +7,17 @@
 #include "vector.h"
 
 class Sphere : public Hittable {
-    private:
-        Point3 center;
-        double radius;
-    public:
-        Sphere(Point3& center, double radius);
-        ~Sphere();
+   private:
+    Point3 center;
+    double radius;
 
-        bool hit(const Ray& r, double ray_tmin, double ray_tmax, Record& rec) const override;
+   public:
+    Sphere(const Point3& center, double radius);
+    Sphere() {};
+    ~Sphere() {};
+
+    bool hit(const Ray& r, double ray_tmin, double ray_tmax,
+             Record& rec) const override;
 };
 
 #endif
