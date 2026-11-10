@@ -16,7 +16,7 @@ class Sphere : public Hittable {
     Sphere() {};
     ~Sphere() {};
 
-    bool hit(const Ray& r, double ray_tmin, double ray_tmax,
+    bool hit(const Ray& r, Interval ray_t,
              Record& rec) const override;
 };
 

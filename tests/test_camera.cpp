@@ -1,10 +1,12 @@
-#include <cmath>
 #include <cstdio>
+#include <iostream>
+#include <sstream>
+#include <string>
 
 #include "camera.h"
-#include "vector.h"
+#include "hittable_list.h"
+#include "sphere.h"
 
-// Requires X()/Y()/Z() on Vector3, and Camera::Center()/ray_direction().
 static int failures = 0;
 
 #define CHECK(cond)                                                    \
@@ -15,57 +17,83 @@ static int failures = 0;
         }                                                              \
     } while (0)
 
-static bool near(double a, double b, double eps = 1e-9) {
-    return std::fabs(a - b) < eps;
+// Runs cam.render(world) and returns what it wrote to stdout (the PPM).
+static std::string render_to_string(Camera& cam, const Hittable& world) {
+    std::ostringstream out;
+    std::ostringstream log;
+    std::streambuf* old_out = std::cout.rdbuf(out.rdbuf());
+    std::streambuf* old_log = std::clog.rdbuf(log.rdbuf());
+    cam.render(world);
+    std::cout.rdbuf(old_out);
+    std::clog.rdbuf(old_log);
+    return out.str();
 }
 
-static bool eq(const Vector3& v, double x, double y, double z, double eps = 1e-9) {
-    return near(v.X(), x, eps) && near(v.Y(), y, eps) && near(v.Z(), z, eps);
+static void test_ppm_header_matches_dimensions() {
+    Camera cam;
+    cam.aspect_ratio = 2.0;
+    cam.image_width  = 20;
+    HittableList world;
+
+    std::istringstream ppm(render_to_string(cam, world));
+    std::string magic;
+    int w, h, maxval;
+    ppm >> magic >> w >> h >> maxval;
+    CHECK(magic == "P3");
+    CHECK(w == 20);
+    CHECK(h == 10);
+    CHECK(maxval == 255);
 }
 
-static void test_center_is_preserved() {
-    Camera cam(16, 9, 1.0, Point3(1, 2, 3));
-    CHECK(eq(cam.Center(), 1, 2, 3));
+static void test_pixel_count() {
+    Camera cam;
+    cam.aspect_ratio = 1.0;
+    cam.image_width  = 8;
+    HittableList world;
+
+    std::istringstream ppm(render_to_string(cam, world));
+    std::string magic;
+    int w, h, maxval;
+    ppm >> magic >> w >> h >> maxval;
+
+    int values = 0, v;
+    while (ppm >> v) values++;
+    CHECK(values == w * h * 3);
 }
 
-static void test_center_default_origin() {
-    Camera cam(16, 9, 1.0, Point3(0, 0, 0));
-    CHECK(eq(cam.Center(), 0, 0, 0));
+static void test_height_is_at_least_one() {
+    Camera cam;
+    cam.aspect_ratio = 100.0;
+    cam.image_width  = 10;  // 10 / 100 -> 0, must clamp to 1
+    HittableList world;
+
+    std::istringstream ppm(render_to_string(cam, world));
+    std::string magic;
+    int w, h;
+    ppm >> magic >> w >> h;
+    CHECK(h == 1);
 }
 
-static void test_ray_direction_points_into_viewport() {
-    // Viewport is fixed height 2.0 and centered on the camera's -z axis.
-    // The top-left pixel (0,0) should point up, left, and forward (-z).
-    Camera cam(2, 2, 1.0, Point3(0, 0, 0));
-    Vector3 dir = cam.ray_direction(0, 0);
-    CHECK(dir.X() < 0);
-    CHECK(dir.Y() > 0);
-    CHECK(dir.Z() < 0);
-}
+static void test_sphere_changes_center_pixel() {
+    // Empty world: center pixel is sky. With a sphere in front: it must differ.
+    Camera cam;
+    cam.aspect_ratio = 1.0;
+    cam.image_width  = 11;
 
-static void test_ray_direction_center_pixel_is_near_axis() {
-    // For an odd pixel count, the middle pixel direction should be close to
-    // straight down the -z axis (small x/y offset of half a pixel).
-    Camera cam(3, 3, 1.0, Point3(0, 0, 0));
-    Vector3 dir = cam.ray_direction(1, 1);
-    CHECK(near(dir.X(), 0, 1.0));
-    CHECK(near(dir.Y(), 0, 1.0));
-    CHECK(dir.Z() < 0);
-}
+    HittableList empty;
+    HittableList with_sphere;
+    with_sphere.add(make_shared<Sphere>(Point3(0, 0, -1), 0.5));
 
-static void test_ray_direction_varies_with_pixel() {
-    Camera cam(4, 4, 1.0, Point3(0, 0, 0));
-    Vector3 d0 = cam.ray_direction(0, 0);
-    Vector3 d1 = cam.ray_direction(1, 0);
-    CHECK(d1.X() > d0.X());
+    std::string a = render_to_string(cam, empty);
+    std::string b = render_to_string(cam, with_sphere);
+    CHECK(a != b);
 }
 
 int main() {
-    test_center_is_preserved();
-    test_center_default_origin();
-    test_ray_direction_points_into_viewport();
-    test_ray_direction_center_pixel_is_near_axis();
-    test_ray_direction_varies_with_pixel();
+    test_ppm_header_matches_dimensions();
+    test_pixel_count();
+    test_height_is_at_least_one();
+    test_sphere_changes_center_pixel();
 
     if (failures) {
         std::printf("%d check(s) failed\n", failures);

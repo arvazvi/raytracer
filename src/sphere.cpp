@@ -5,7 +5,7 @@
 Sphere::Sphere(const Point3& center, double radius)
     : center(center), radius(std::fmax(0, radius)) {}
 
-bool Sphere::hit(const Ray& r, double ray_tmin, double ray_tmax,
+bool Sphere::hit(const Ray& r, Interval ray_t,
                  Record& rec) const {
     Vector3 oc = center - r.Origin();
     const double m = r.Direction().Magnitude();
@@ -20,9 +20,9 @@ bool Sphere::hit(const Ray& r, double ray_tmin, double ray_tmax,
     auto sqrtd = std::sqrt(discriminant);
 
     auto root = (h - sqrtd) / a;
-    if (root <= ray_tmin || ray_tmax <= root) {
+    if (!ray_t.surrounds(root)) {
         root = (h + sqrtd) / a;
-        if (root <= ray_tmin || ray_tmax <= root) return false;
+        if (!ray_t.surrounds(root)) return false;
     }
 
     rec.t = root;

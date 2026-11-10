@@ -2,32 +2,25 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "vector.h"
-
-using Point3 = Vector3;
+#include "utils.h"
+#include "hittable.h"
 
 class Camera {
-    private:
-        double aspect_ratio;
-        double focal_length;
-        double viewport_height;
-        double viewport_width;
-        Point3 center;
+    public:
+        double aspect_ratio = 1.0;
+        int    image_width  = 100;
 
-        Vector3 viewport_u;
-        Vector3 viewport_v;
+        void render(const Hittable& world);
+
+    private:
+        int     image_height;
+        Point3  center;
+        Point3  pixel00_loc;
         Vector3 pixel_delta_u;
         Vector3 pixel_delta_v;
-        Point3 viewport_upper_left;
-        Point3 pixel00_loc;
 
-        Point3 pixel_center(int i, int j) const;
-    public:
-        Camera(double width, double height, double focal_length, Point3 center);
-        ~Camera();
-
-        Point3 Center() const;
-
-        Vector3 ray_direction(int i, int j) const;
+        void initialize();
+        Color ray_color(const Ray& r, const Hittable& world) const;
 };
+
 #endif
