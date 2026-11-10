@@ -3,9 +3,8 @@
 
 #include <vector>
 
-#include "utils.h"
-
 #include "hittable.h"
+#include "utils.h"
 
 class HittableList : public Hittable {
    public:
@@ -17,8 +16,7 @@ class HittableList : public Hittable {
     void clear() { objects.clear(); };
     void add(shared_ptr<Hittable> object) { objects.push_back(object); };
 
-    bool hit(const Ray& r, Interval ray_t,
-             Record& rec) const override {
+    bool hit(const Ray& r, Interval ray_t, Record& rec) const override {
         Record tmp;
         bool any = false;
         double closest = ray_t.max;

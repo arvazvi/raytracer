@@ -6,9 +6,10 @@ void Camera::render(const Hittable& world) {
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
     for (int j = 0; j < image_height; j++) {
-        std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
+        std::clog << "\rScanlines remaining: " << (image_height - j) << ' '
+                  << std::flush;
         for (int i = 0; i < image_width; i++) {
-            Color pixel_color(0,0,0);
+            Color pixel_color(0, 0, 0);
             for (int sample = 0; sample < samples_per_pixel; sample++) {
                 Ray r = get_ray(i, j);
                 pixel_color = pixel_color + ray_color(r, max_depth, world);
@@ -30,7 +31,8 @@ void Camera::initialize() {
 
     double focal_length = 1.0;
     double viewport_height = 2.0;
-    double viewport_width = viewport_height * (double(image_width) / image_height);
+    double viewport_width =
+        viewport_height * (double(image_width) / image_height);
 
     Vector3 viewport_u = Vector3(viewport_width, 0, 0);
     Vector3 viewport_v = Vector3(0, -viewport_height, 0);
@@ -44,26 +46,24 @@ void Camera::initialize() {
 }
 
 Color Camera::ray_color(const Ray& r, int depth, const Hittable& world) const {
-    if (depth <= 0)
-        return Color(0, 0, 0);
+    if (depth <= 0) return Color(0, 0, 0);
 
     Record rec;
 
     if (world.hit(r, Interval(0.001, infinity), rec)) {
-        Vector3 direction = random_on_hemisphere(rec.normal);
-        return ray_color(Ray(rec.p, direction), depth-1, world) * 0.5;
+        Vector3 direction = rec.normal + random_unit_vector();
+        return ray_color(Ray(rec.p, direction), depth - 1, world) * 0.5;
     }
 
     Vector3 unit_direction = r.Direction().Unit();
-    double a = 0.5 * (unit_direction.Y() + 1.0);
-    return Color(1.0, 1.0, 1.0) * (1.0-a) + Color(0.5, 0.7, 1.0) * a;
+    double a = (unit_direction.Y() + 1.0) * 0.5;
+    return Color(1.0, 1.0, 1.0) * (1.0 - a) + Color(0.5, 0.7, 1.0) * a;
 }
 
 Ray Camera::get_ray(int i, int j) const {
     auto offset = sample_square();
-    auto pixel_sample = pixel00_loc
-        + (pixel_delta_u * (i + offset.X()))
-        + (pixel_delta_v * (j + offset.Y()));
+    auto pixel_sample = pixel00_loc + (pixel_delta_u * (i + offset.X())) +
+                        (pixel_delta_v * (j + offset.Y()));
 
     auto ray_origin = center;
     auto ray_direction = pixel_sample - ray_origin;

@@ -4,7 +4,6 @@
 #define SPHERE_H
 
 #include "hittable.h"
-#include "vector.h"
 
 class Sphere : public Hittable {
    private:
@@ -16,8 +15,7 @@ class Sphere : public Hittable {
     Sphere() {};
     ~Sphere() {};
 
-    bool hit(const Ray& r, Interval ray_t,
-             Record& rec) const override;
+    bool hit(const Ray& r, Interval ray_t, Record& rec) const override;
 };
 
 #endif
