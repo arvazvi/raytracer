@@ -1,4 +1,5 @@
 #include "camera.h"
+#include "material.h"
 
 void Camera::render(const Hittable& world) {
     initialize();
@@ -51,11 +52,16 @@ Color Camera::ray_color(const Ray& r, int depth, const Hittable& world) const {
     Record rec;
 
     if (world.hit(r, Interval(0.001, infinity), rec)) {
-        Vector3 direction = rec.normal + random_unit_vector();
-        return ray_color(Ray(rec.p, direction), depth - 1, world) * 0.5;
+        Ray scattered;
+        Color attenuation;
+
+        if (rec.mat->scatter(r, rec, attenuation, scattered))
+            return ray_color(scattered, depth - 1, world) * attenuation;
+
+        return Color(0, 0, 0);
     }
 
-    Vector3 unit_direction = r.Direction().Unit();
+    Vector3 unit_direction = r.Direction().normalize();
     double a = (unit_direction.Y() + 1.0) * 0.5;
     return Color(1.0, 1.0, 1.0) * (1.0 - a) + Color(0.5, 0.7, 1.0) * a;
 }

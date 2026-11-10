@@ -82,7 +82,8 @@ static void test_sphere_changes_center_pixel() {
 
     HittableList empty;
     HittableList with_sphere;
-    with_sphere.add(make_shared<Sphere>(Point3(0, 0, -1), 0.5));
+    with_sphere.add(make_shared<Sphere>(Point3(0, 0, -1), 0.5,
+                                      make_shared<Lambertian>(Color(0.5, 0.5, 0.5))));
 
     std::string a = render_to_string(cam, empty);
     std::string b = render_to_string(cam, with_sphere);

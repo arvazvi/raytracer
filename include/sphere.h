@@ -4,14 +4,16 @@
 #define SPHERE_H
 
 #include "hittable.h"
+#include "material.h"
 
 class Sphere : public Hittable {
    private:
     Point3 center;
     double radius;
+    shared_ptr<Material> mat;
 
    public:
-    Sphere(const Point3& center, double radius);
+    Sphere(const Point3& center, double radius, shared_ptr<Material> mat);
     Sphere() {};
     ~Sphere() {};
 
