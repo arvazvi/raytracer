@@ -1,22 +1,13 @@
 #include <iostream>
 
+#include "utils.h"
 #include "camera.h"
-#include "color.h"
 #include "hittable.h"
 #include "hittable_list.h"
-#include "ray.h"
 #include "sphere.h"
-#include "vector.h"
 
 #define ASPECT_RATIO (16.0 / 9.0)
 #define FOCAL_LENGTH 1.0
-
-const double infinity = std::numeric_limits<double>::infinity();
-const double pi = 3.1415926535897932385;
-
-inline double degrees_to_radians(double degrees) {
-    return degrees * pi / 180.0;
-}
 
 Color ray_color(const Ray& r, const Hittable& world) {
     Record rec;

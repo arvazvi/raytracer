@@ -1,9 +1,10 @@
+#pragma once
+
 #ifndef COLOR_H
 #define COLOR_H
 
-#include "vector.h"
-
 #include <iostream>
+#include "vector.h"
 
 using Color = Vector3;
 
