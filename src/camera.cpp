@@ -11,7 +11,7 @@ void Camera::render(const Hittable& world) {
             Color pixel_color(0,0,0);
             for (int sample = 0; sample < samples_per_pixel; sample++) {
                 Ray r = get_ray(i, j);
-                pixel_color = pixel_color + ray_color(r, world);
+                pixel_color = pixel_color + ray_color(r, max_depth, world);
             }
             write_color(std::cout, pixel_color * pixel_samples_scale);
         }
@@ -43,12 +43,15 @@ void Camera::initialize() {
     pixel00_loc = viewport_upper_left + (pixel_delta_u + pixel_delta_v) * 0.5;
 }
 
-Color Camera::ray_color(const Ray& r, const Hittable& world) const {
+Color Camera::ray_color(const Ray& r, int depth, const Hittable& world) const {
+    if (depth <= 0)
+        return Color(0, 0, 0);
+
     Record rec;
 
-    if (world.hit(r, Interval(0, infinity), rec)) {
+    if (world.hit(r, Interval(0.001, infinity), rec)) {
         Vector3 direction = random_on_hemisphere(rec.normal);
-        return ray_color(Ray(rec.p, direction), world) * 0.5;
+        return ray_color(Ray(rec.p, direction), depth-1, world) * 0.5;
     }
 
     Vector3 unit_direction = r.Direction().Unit();
