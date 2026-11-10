@@ -47,12 +47,13 @@ Color Camera::ray_color(const Ray& r, const Hittable& world) const {
     Record rec;
 
     if (world.hit(r, Interval(0, infinity), rec)) {
-        return (rec.normal + Color(1, 1, 1)) * 0.5;
+        Vector3 direction = random_on_hemisphere(rec.normal);
+        return ray_color(Ray(rec.p, direction), world) * 0.5;
     }
 
     Vector3 unit_direction = r.Direction().Unit();
     double a = 0.5 * (unit_direction.Y() + 1.0);
-    return Color(1.0, 1.0, 1.0) * (1.0 - a) + Color(0.5, 0.7, 1.0) * a;
+    return Color(1.0, 1.0, 1.0) * (1.0-a) + Color(0.5, 0.7, 1.0) * a;
 }
 
 Ray Camera::get_ray(int i, int j) const {
