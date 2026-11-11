@@ -17,6 +17,10 @@ Open `img.ppm` with any PPM-capable viewer (e.g. Preview on macOS, GIMP).
 
 Scene and camera settings (resolution, samples per pixel, field of view, depth of field) are set in `src/main.cpp`.
 
+## High resolution example
+<img width="1200" height="675" alt="img" src="https://github.com/user-attachments/assets/0206088c-96a3-4882-8938-10179394dabd" />
+
+
 ## Known limitations
 
 - Single-threaded, so high-quality renders are slow.
