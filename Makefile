@@ -26,5 +26,8 @@ build/test_%: tests/test_%.cpp $(LIB_OBJS)
 clean:
 	rm -rf build
 
+run: clean raytracer
+	./build/raytracer > img.ppm
+
 .PHONY: clean test
 -include $(OBJS:.o=.d)

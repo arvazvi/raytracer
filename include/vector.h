@@ -105,4 +105,13 @@ inline Vector3 random_on_hemisphere(const Vector3& normal) {
         return on_unit_sphere * -1;
 }
 
+inline Vector3 refract(const Vector3& uv, const Vector3& n,
+                       double etai_ov_etat) {
+    double cos_theta = std::fmin((-uv).dot(n), 1.0);
+    Vector3 r_out_perp = etai_ov_etat * (uv + cos_theta * n);
+    Vector3 r_out_parallel =
+        -std::sqrt(std::fabs(1.0 - r_out_perp.dot(r_out_perp))) * n;
+    return r_out_perp + r_out_parallel;
+}
+
 #endif

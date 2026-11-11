@@ -6,17 +6,17 @@
 
 int main() {
     HittableList world;
-    auto material_ground = make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
-    auto material_center = make_shared<Lambertian>(Color(0.1, 0.2, 0.5));
-    auto material_left = make_shared<Metal>(Color(0.8, 0.8, 0.8));
-    auto material_right = make_shared<Metal>(Color(0.8, 0.6, 0.2));
+    auto ground = make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
+    auto lambertian = make_shared<Lambertian>(Color(0.1, 0.2, 0.5));
+    auto polished = make_shared<Metal>(Color(0.1, 0.2, 0.5));
+    auto fuzzy = make_shared<FuzzyMetal>(Color(0.8, 0.6, 0.2), 1.0);
+    auto glass = make_shared<Dielectric>(1.00 / 1.33);
 
-    world.add(
-        make_shared<Sphere>(Point3(0.0, -100.5, -1.0), 100.0, material_ground));
-    world.add(
-        make_shared<Sphere>(Point3(0.0, 0.0, -1.2), 0.5, material_center));
-    world.add(make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.5, material_left));
-    world.add(make_shared<Sphere>(Point3(1.0, 0.0, -1.0), 0.5, material_right));
+    world.add(make_shared<Sphere>(Point3(0.0, -100.5, -1.0), 100.0, ground));
+    world.add(make_shared<Sphere>(Point3(0.0, 0.0, -1.2), 0.5, lambertian));
+    // world.add(make_shared<Sphere>(Point3(0.5, -0.5, -1.0), 0.1, polished));
+    world.add(make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.5, glass));
+    world.add(make_shared<Sphere>(Point3(1.0, 0.0, -1.0), 0.5, fuzzy));
 
     Camera cam;
     cam.aspect_ratio = 16.0 / 9.0;
