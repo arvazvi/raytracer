@@ -1,4 +1,5 @@
 #include "camera.h"
+
 #include "material.h"
 
 void Camera::render(const Hittable& world) {
@@ -28,21 +29,32 @@ void Camera::initialize() {
 
     pixel_samples_scale = 1.0 / samples_per_pixel;
 
-    center = Point3(0, 0, 0);
+    center = lookfrom;
 
-    double focal_length = 1.0;
-    double viewport_height = 2.0;
-    double viewport_width =
+    // auto focal_length = (lookfrom - lookat).magnitude();
+    auto theta = degrees_to_radians(vfov);
+    auto h = std::tan(theta / 2);
+    auto viewport_height = 2 * h * focus_dist;
+    auto viewport_width =
         viewport_height * (double(image_width) / image_height);
 
-    Vector3 viewport_u = Vector3(viewport_width, 0, 0);
-    Vector3 viewport_v = Vector3(0, -viewport_height, 0);
+    w = (lookfrom - lookat).normalize();
+    u = vup.cross(w).normalize();
+    v = w.cross(u);
+
+    Vector3 viewport_u = viewport_width * u;
+    Vector3 viewport_v = viewport_height * -v;
 
     pixel_delta_u = viewport_u / image_width;
     pixel_delta_v = viewport_v / image_height;
 
-    Point3 viewport_upper_left =
-        center - Vector3(0, 0, focal_length) - viewport_u / 2 - viewport_v / 2;
+    auto viewport_upper_left =
+        center - (focus_dist * w) - viewport_u / 2 - viewport_v / 2;
+    pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+    auto defocus_radius =
+        focus_dist * std::tan(degrees_to_radians(defocus_angle / 2));
+    defocus_disk_u = u * defocus_radius;
+    defocus_disk_v = v * defocus_radius;
     pixel00_loc = viewport_upper_left + (pixel_delta_u + pixel_delta_v) * 0.5;
 }
 
@@ -71,7 +83,7 @@ Ray Camera::get_ray(int i, int j) const {
     auto pixel_sample = pixel00_loc + (pixel_delta_u * (i + offset.X())) +
                         (pixel_delta_v * (j + offset.Y()));
 
-    auto ray_origin = center;
+    auto ray_origin = (defocus_angle <= 0) ? center : defocus_disk_sample();
     auto ray_direction = pixel_sample - ray_origin;
 
     return Ray(ray_origin, ray_direction);

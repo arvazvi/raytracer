@@ -20,7 +20,7 @@ class Lambertian : public Material {
     bool scatter(const Ray& /*r_in*/, const Record& rec, Color& attenuation,
                  Ray& scattered) const override {
         Vector3 scatter_direction = rec.normal + random_unit_vector();
-        if (scatter_direction.IsAlmostZero()) scatter_direction = rec.normal;
+        if (scatter_direction.near_zero()) scatter_direction = rec.normal;
 
         scattered = Ray(rec.p, scatter_direction);
         attenuation = albedo;

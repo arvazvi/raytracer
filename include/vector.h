@@ -45,7 +45,7 @@ class Vector3 {
     double dot(const Vector3& other) const;
     double magnitude() const;
 
-    bool IsAlmostZero() const {
+    bool near_zero() const {
         const double s = 1e-8;
         return (std::fabs(e[0]) < s) && (std::fabs(e[1]) < s) &&
                (std::fabs(e[2]) < s);
@@ -112,6 +112,13 @@ inline Vector3 refract(const Vector3& uv, const Vector3& n,
     Vector3 r_out_parallel =
         -std::sqrt(std::fabs(1.0 - r_out_perp.dot(r_out_perp))) * n;
     return r_out_perp + r_out_parallel;
+}
+
+inline Vector3 random_in_unit_disk() {
+    while (true) {
+        auto p = Vector3(random_double(-1, 1), random_double(-1, 1), 0);
+        if (p.dot(p) < 1) return p;
+    }
 }
 
 #endif

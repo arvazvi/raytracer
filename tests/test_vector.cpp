@@ -63,9 +63,9 @@ static void test_reflect() {
 }
 
 static void test_almost_zero() {
-    CHECK(Vector3().IsAlmostZero());
-    CHECK(Vector3(1e-9, -1e-9, 0).IsAlmostZero());
-    CHECK(!Vector3(0, 1e-3, 0).IsAlmostZero());
+    CHECK(Vector3().near_zero());
+    CHECK(Vector3(1e-9, -1e-9, 0).near_zero());
+    CHECK(!Vector3(0, 1e-3, 0).near_zero());
 }
 
 static void test_random() {
