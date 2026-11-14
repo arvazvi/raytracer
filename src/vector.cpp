@@ -1,6 +1,31 @@
 #include "vector.h"
 
 #include <cmath>
+#include <sstream>
+#include <string>
+#include <vector>
+
+static inline std::vector<std::string> splitByChar(const std::string& str,
+                                                   char delimiter) {
+    std::vector<std::string> tokens;
+    std::stringstream ss(str);
+    std::string token;
+
+    while (std::getline(ss, token, delimiter)) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
+Vector3::Vector3(std::string args) {
+    std::vector<std::string> v = splitByChar(args, ',');
+    if (v.size() != 3) {
+        throw std::invalid_argument("Invalid vector size");
+    }
+    e[0] = std::stod(v[0]);
+    e[1] = std::stod(v[1]);
+    e[2] = std::stod(v[2]);
+}
 
 Vector3::~Vector3() {}
 

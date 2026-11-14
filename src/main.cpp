@@ -1,10 +1,17 @@
 #include "camera.h"
+#include "cli.h"
 #include "hittable.h"
 #include "hittable_list.h"
 #include "sphere.h"
 #include "utils.h"
 
-int main() {
+int main(int argc, char* argv[]) {
+    Args args = Args::parse(argc, argv);
+    if (args.help) {
+        std::cout << Args::usage(argv[0]);
+        return 0;
+    }
+
     HittableList world;
 
     auto ground_material = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
@@ -18,22 +25,23 @@ int main() {
 
             if ((center - Point3(4, 0.2, 0)).magnitude() > 0.9) {
                 shared_ptr<Material> sphere_material;
-
-                if (choose_mat < 0.8) {
-                    // diffuse
+                if (choose_mat < 0.3) {
+                    auto albedo = Color::random() * Color::random();
+                    sphere_material = make_shared<Metal>(albedo);
+                    world.add(
+                        make_shared<Sphere>(center, 0.2, sphere_material));
+                } else if (choose_mat < 0.8) {
                     auto albedo = Color::random() * Color::random();
                     sphere_material = make_shared<Lambertian>(albedo);
                     world.add(
                         make_shared<Sphere>(center, 0.2, sphere_material));
                 } else if (choose_mat < 0.95) {
-                    // FuzzyMetal
                     auto albedo = Color::random(0.5, 1);
                     auto fuzz = random_double(0, 0.5);
                     sphere_material = make_shared<FuzzyMetal>(albedo, fuzz);
                     world.add(
                         make_shared<Sphere>(center, 0.2, sphere_material));
                 } else {
-                    // glass
                     sphere_material = make_shared<Dielectric>(1.5);
                     world.add(
                         make_shared<Sphere>(center, 0.2, sphere_material));
@@ -53,18 +61,18 @@ int main() {
 
     Camera cam;
 
-    cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 1200;
-    cam.samples_per_pixel = 500;
-    cam.max_depth = 50;
+    cam.aspect_ratio = args.aspect_ratio;
+    cam.image_width = args.image_width;
+    cam.samples_per_pixel = args.samples_per_pixel;
+    cam.max_depth = args.max_depth;
 
-    cam.vfov = 20;
-    cam.lookfrom = Point3(13, 2, 3);
-    cam.lookat = Point3(0, 0, 0);
-    cam.vup = Vector3(0, 1, 0);
+    cam.vfov = args.vfov;
+    cam.lookfrom = args.lookfrom;
+    cam.lookat = args.lookat;
+    cam.vup = args.vup;
 
-    cam.defocus_angle = 0.6;
-    cam.focus_dist = 10.0;
+    cam.defocus_angle = args.defocus_angle;
+    cam.focus_dist = args.focus_dist;
 
     cam.render(world);
 }

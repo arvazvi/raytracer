@@ -13,6 +13,7 @@ class Vector3 {
     double e[3];
     Vector3() : e{0, 0, 0} {};
     Vector3(double x, double y, double z) : e{x, y, z} {};
+    Vector3(std::string args);
     ~Vector3();
 
     double X() const;
