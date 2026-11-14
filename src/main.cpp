@@ -74,5 +74,5 @@ int main(int argc, char* argv[]) {
     cam.defocus_angle = args.defocus_angle;
     cam.focus_dist = args.focus_dist;
 
-    cam.render(world);
+    cam.render(world, args.threads);
 }

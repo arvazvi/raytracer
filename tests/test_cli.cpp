@@ -133,9 +133,17 @@ static bool throws_out_of_range(F f) {
 
 static void test_threads_initialized() {
     Args a = parse({});
-    CHECK(a.threads >= 1);
-    unsigned int hw = std::thread::hardware_concurrency();
-    if (hw > 0) CHECK(a.threads == hw);
+    CHECK(a.threads == 1);
+}
+
+static void test_threads_flag() {
+    CHECK(parse({"-j", "1"}).threads == 1);
+    CHECK(parse({"--threads", "1"}).threads == 1);
+    unsigned int hw = std::max(1u, std::thread::hardware_concurrency());
+    CHECK(parse({"-j", std::to_string(hw)}).threads == hw);
+    CHECK(throws_invalid_argument([] { parse({"-j", "0"}); }));
+    CHECK(throws_invalid_argument([] { parse({"-j", "-2"}); }));
+    CHECK(throws_out_of_range([&] { parse({"-j", std::to_string(hw + 1)}); }));
 }
 
 static void test_missing_value_throws() {
@@ -221,6 +229,7 @@ int main() {
     test_invalid_number_throws();
     test_invalid_vector_throws();
     test_threads_initialized();
+    test_threads_flag();
     test_missing_value_throws();
     test_negative_uint_throws();
     test_uint_too_large_throws();

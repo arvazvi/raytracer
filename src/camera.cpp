@@ -1,24 +1,51 @@
 #include "camera.h"
 
+#include <atomic>
+#include <chrono>
+#include <thread>
+
 #include "material.h"
 
-void Camera::render(const Hittable& world) {
+void Camera::render(const Hittable& world, int workers) {
     initialize();
 
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
-    for (int j = 0; j < image_height; j++) {
-        std::clog << "\rScanlines remaining: " << (image_height - j) << ' '
-                  << std::flush;
-        for (int i = 0; i < image_width; i++) {
-            Color pixel_color(0, 0, 0);
-            for (int sample = 0; sample < samples_per_pixel; sample++) {
-                Ray r = get_ray(i, j);
-                pixel_color = pixel_color + ray_color(r, max_depth, world);
+    unsigned int n = std::min<unsigned>(workers, image_height);
+    std::vector<Color> pixels(size_t(image_width) * image_height);
+    std::atomic<int> next_row{0};
+    std::atomic<int> rows_done{0};
+
+    auto worker = [&] {
+        for (;;) {
+            int j = next_row.fetch_add(1);
+            if (j >= image_height) return;
+            seed_random(uint64_t(j) + 1);
+            for (int i = 0; i < image_width; i++) {
+                Color pixel_color(0, 0, 0);
+                for (int sample = 0; sample < samples_per_pixel; sample++) {
+                    Ray r = get_ray(i, j);
+                    pixel_color = pixel_color + ray_color(r, max_depth, world);
+                }
+                pixels[size_t(j) * image_width + i] =
+                    pixel_color * pixel_samples_scale;
             }
-            write_color(std::cout, pixel_color * pixel_samples_scale);
+            rows_done.fetch_add(1);
         }
+    };
+
+    std::vector<std::thread> pool;
+    for (unsigned t = 0; t < n; t++) pool.emplace_back(worker);
+
+    int done;
+    while ((done = rows_done.load()) < image_height) {
+        std::clog << "\rScanlines remaining: " << (image_height - done) << "   "
+                  << std::flush;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
+    for (auto& t : pool) t.join();
+
+    for (const Color& c : pixels) write_color(std::cout, c);
 
     std::clog << "\rDone.                 \n";
 }
@@ -31,7 +58,6 @@ void Camera::initialize() {
 
     center = lookfrom;
 
-    // auto focal_length = (lookfrom - lookat).magnitude();
     auto theta = degrees_to_radians(vfov);
     auto h = std::tan(theta / 2);
     auto viewport_height = 2 * h * focus_dist;
@@ -50,7 +76,6 @@ void Camera::initialize() {
 
     auto viewport_upper_left =
         center - (focus_dist * w) - viewport_u / 2 - viewport_v / 2;
-    pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
     auto defocus_radius =
         focus_dist * std::tan(degrees_to_radians(defocus_angle / 2));
     defocus_disk_u = u * defocus_radius;
@@ -91,4 +116,9 @@ Ray Camera::get_ray(int i, int j) const {
 
 Vector3 Camera::sample_square() const {
     return Vector3(random_double() - 0.5, random_double() - 0.5, 0);
+}
+
+Point3 Camera::defocus_disk_sample() const {
+    auto p = random_in_unit_disk();
+    return center + (p[0] * defocus_disk_u) + (p[1] * defocus_disk_v);
 }

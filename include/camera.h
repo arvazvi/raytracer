@@ -20,7 +20,7 @@ class Camera {
     double defocus_angle = 0;
     double focus_dist = 10;
 
-    void render(const Hittable& world);
+    void render(const Hittable& world, int workers);
 
    private:
     int image_height;
@@ -39,11 +39,7 @@ class Camera {
     Color ray_color(const Ray& r, int depth, const Hittable& world) const;
     Ray get_ray(int i, int j) const;
     Vector3 sample_square() const;
-
-    Point3 defocus_disk_sample() const {
-        auto p = random_in_unit_disk();
-        return center + (p[0] * defocus_disk_u) + (p[1] * defocus_disk_v);
-    }
+    Point3 defocus_disk_sample() const;
 };
 
 #endif

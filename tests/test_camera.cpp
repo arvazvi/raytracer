@@ -23,7 +23,7 @@ static std::string render_to_string(Camera& cam, const Hittable& world) {
     std::ostringstream log;
     std::streambuf* old_out = std::cout.rdbuf(out.rdbuf());
     std::streambuf* old_log = std::clog.rdbuf(log.rdbuf());
-    cam.render(world);
+    cam.render(world, 1);
     std::cout.rdbuf(old_out);
     std::clog.rdbuf(old_log);
     return out.str();

@@ -15,7 +15,7 @@
 
 class Args {
    public:
-    unsigned int threads;
+    unsigned int threads = 1;
 
     double aspect_ratio = 16.0 / 9.0;
     unsigned int image_width = 1200;
@@ -31,11 +31,6 @@ class Args {
     double focus_dist = 10.0;
 
     bool help = false;
-
-    Args() {
-        unsigned int hw = std::thread::hardware_concurrency();
-        threads = hw > 0 ? hw : 1;
-    };
 
     static Args parse(int argc, char* argv[]) {
         Args args;
@@ -67,6 +62,8 @@ class Args {
                 args.lookat = Point3(next_value(arr, i));
             } else if (flag == "--vup") {
                 args.vup = Vector3(next_value(arr, i));
+            } else if (flag == "-j" || flag == "--threads") {
+                args.threads = parse_threads(flag, next_value(arr, i));
             }
         }
 
@@ -86,6 +83,7 @@ class Args {
             << d.image_width << ")\n"
             << "  -s, --samples-pp N      Samples per pixel (default "
             << d.samples_per_pixel << ")\n"
+            << "  -j, --threads N         Number of threads (default 1)\n"
             << "      --max-depth N       Max ray bounces (default "
             << d.max_depth << ")\n"
             << "      --aspect-ratio R    Width / height (default "
@@ -131,6 +129,20 @@ class Args {
         }
         if (n >
             static_cast<long long>(std::numeric_limits<unsigned int>::max())) {
+            throw std::out_of_range(flag + " is too large: " + value);
+        }
+        return static_cast<unsigned int>(n);
+    }
+
+    static unsigned int parse_threads(const std::string& flag,
+                                      const std::string& value) {
+        long long n = std::stoll(value);
+        if (n < 1) {
+            throw std::invalid_argument(flag + " must be at least 1, got " +
+                                        value);
+        }
+        if (n > static_cast<long long>(
+                    std::max(1u, std::thread::hardware_concurrency()))) {
             throw std::out_of_range(flag + " is too large: " + value);
         }
         return static_cast<unsigned int>(n);
